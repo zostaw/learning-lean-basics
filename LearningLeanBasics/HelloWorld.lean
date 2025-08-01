@@ -17,6 +17,7 @@ example (a b c d e : Nat)
     )
   )
 
+
 /-
 idiomatic way using *calc* syntax -
   *syntactic sugar* over Term Mode
@@ -30,6 +31,7 @@ example (a b c d e : Nat)
   calc
     a = b := h1
     b = c + 1 := by rw[h2] -- rewrite b using h2: b = c + 1 -> c + 1 = c + 1
+    -- the above comment is a bit oversimplification, in general lean will use pattern matching to rewrite the statement
     c + 1 = d + 1 := by rw[h3]
     d + 1 = 1 + d := Nat.add_comm d 1
     1 + d = e := by rw[h4]
@@ -50,22 +52,6 @@ example (a b c d e : Nat)
     simp [h2, h1, h3, h4, Nat.add_comm]
 
 /-
-*simp* is a deterministic mechanism and it applies rules according
-  to rules
-for instance circular hypothesis' will cause an ∞ recursion
-which in return will cause lean to fail after reaching max recursion depth
--/
-example (a b c d e : Nat)
-  (h1 : a = b)
-  (h2 : b = c + 1)
-  (h3 : c = d)
-  (h5 : d = c) -- adding circular hypothesis breaks simp
-  (h4 : e = 1 + d)
-  : a = e := by
-    simp [h2, h1, h3, h5, h4, Nat.add_comm]
-
-
-/-
 simp [*] tells simp
   to use all local hypotheses
     as rewrite rules
@@ -77,3 +63,18 @@ example (a b c d e : Nat)
   (h4 : e = 1 + d)
   : a = e := by
     simp [*, Nat.add_comm]
+
+/-
+*simp* is a deterministic mechanism and is following rules
+for instance circular hypothesis' will cause an ∞ recursion
+which in return will cause lean to fail after reaching max recursion depth
+-/
+example (a b c d e : Nat)
+  (h1 : a = b)
+  (h2 : b = c + 1)
+  (h3 : c = d)
+  (h5 : d = c) -- adding circular assumptions breaks simp
+  (h4 : e = 1 + d)
+  : a = e := by
+    -- this will fail due to circular rules
+    simp [h2, h1, h3, h5, h4, Nat.add_comm]
